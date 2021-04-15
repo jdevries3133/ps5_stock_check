@@ -19,6 +19,6 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# this will check on an infinite loop and log to ./main.log
+# this will check on an infinite loop and log to ./stock_check.log
 python3 main.py
 ```
