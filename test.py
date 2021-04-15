@@ -10,7 +10,6 @@ class TestMain(TestCase):
     assertions here or there if possible.
     """
 
-
     def setUp(self):
         self.checker = CheckStock()
 
@@ -22,10 +21,10 @@ class TestMain(TestCase):
         This sends a *real* web hook message.
         Uncomment for test suite spam
         """
-        res = send_webhook_message('Hello, world! The webhook link works.')
-        self.assertIn(res.status_code, range(200, 300))
+        # res = send_webhook_message('Hello, world! The webhook link works.')
+        # self.assertIn(res.status_code, range(200, 300))
 
-    def test_walmart(self ):
+    def test_walmart(self):
         result = self.checker.check_walmart()
         self.assertIsInstance(result, Result)
 

@@ -6,7 +6,9 @@ This checks for the digital edition only because that is what I am looking
 for. It can probably be tweaked to look for whatever edition you are looking
 for by simply changing the url constants in the CheckStock class.
 """
+
 import json
+import time
 import logging
 from typing import List, NamedTuple
 from pathlib import Path
@@ -15,16 +17,20 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 
-logging.basicConfig(
-    filename=Path(Path(__file__).parent, 'main.log')
-)
 
+                        ### SETUP LOGGING ###
+logging.basicConfig(
+    filename=Path(Path(__file__).parent, 'stock_check.log')
+)
 logger = logging.getLogger(__name__)
 
+
+                        ### SETUP CONFIG ###
 with open(Path(Path(__file__).parent, 'config.json'), 'r') as jsonf:
     WEBHOOK_URL = json.load(jsonf)['WEBHOOK_URL']
 
-def send_webhook_message(message) -> requests.models.Response:
+
+def send_webhook_message(message: str) -> requests.models.Response:
     return requests.post(
         WEBHOOK_URL,
         json={
@@ -82,13 +88,15 @@ class CheckStock:
 
     def __call__(self) -> List[Result]:
         """
-        Calls all check_* functions and returns a list of Result objects.
+        Calls all check_* functions and returns their results.
         """
         results = []
         for item in dir(self):
             if item.startswith('check_') and callable(getattr(self, item)):
                 self._refresh_session()
                 results.append(getattr(self, item)())
+                time.sleep(self.TIME_SLEEP)
+
         return results
 
     def check_walmart(self):
@@ -112,8 +120,10 @@ class CheckStock:
             return Result(is_available=False)
 
     def check_sony(self):
-        # for some reason, sony doesn't like the user agent spoofing,
-        # but is ok with python request's default user agent
+        """
+        For some reason, sony doesn't like the user agent spoofing, but is ok
+        with python request's default user agent
+        """
         res = requests.get(self.PS5_URL_SONY)
         soup = BeautifulSoup(res.text, features='lxml')
         status = soup.find(
@@ -128,8 +138,6 @@ class CheckStock:
         )
 
     def check_bestbuy(self):
-        # throwaway request to get cookies in the session
-        self.session.get(self.PS5_URL_BESTBUY_LISTING)
         res = self.session.get(self.PS5_URL_BESTBUY_CHECKSTOCK)
         soup = BeautifulSoup(res.text, features='lxml')
         status = soup.find('button', {'class': 'add-to-cart-button'}).getText()
