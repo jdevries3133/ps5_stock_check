@@ -9,20 +9,20 @@ for by simply changing the url constants in the CheckStock class.
 import json
 import logging
 from typing import List, NamedTuple
+from pathlib import Path
 import sys
 
 import requests
 from bs4 import BeautifulSoup
 
-logger = logging.getLogger(__name__)
-
-WEBHOOK_URL = (
-    'https://discord.com/api'
-    '/webhooks'
-    '/804903439486025769'
-    '/sIKij7GNOf7KSvFuRydf_oob05ras78tF5Ow1KKvwPSl0eJDguL2pD8wuIS8U8TipO5Q'
+logging.basicConfig(
+    filename=Path(Path(__file__).parent, 'main.log')
 )
 
+logger = logging.getLogger(__name__)
+
+with open(Path(Path(__file__).parent, 'config.json'), 'r') as jsonf:
+    WEBHOOK_URL = json.load(jsonf)['WEBHOOK_URL']
 
 def send_webhook_message(message) -> requests.models.Response:
     return requests.post(
